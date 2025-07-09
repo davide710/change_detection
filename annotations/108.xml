@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>108.png</filename>
+	<path>/home/davide/Desktop/change_detection/images/108.png</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>610</width>
+		<height>450</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>2</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>152</xmin>
+			<ymin>25</ymin>
+			<xmax>260</xmax>
+			<ymax>152</ymax>
+		</bndbox>
+	</object>
+</annotation>
