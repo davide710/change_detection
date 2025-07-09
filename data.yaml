@@ -1,6 +1,10 @@
-train: org_data/train
-val: org_data/test
+path: ./dataset 
+
+train: images/train
+val: images/val
+
 nc: 2
-names: ['increase',
-'decrease'
-]
+
+names:
+  0: sudden_increase
+  1: sudden_decrease
