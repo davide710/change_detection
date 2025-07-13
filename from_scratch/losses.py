@@ -1,7 +1,6 @@
 import copy
 import random
 from time import time
-
 import math
 import numpy
 import torch
@@ -13,9 +12,9 @@ def setup_seed():
     """
     Setup random seed.
     """
-    random.seed(0)
-    numpy.random.seed(0)
-    torch.manual_seed(0)
+    random.seed(42)
+    numpy.random.seed(42)
+    torch.manual_seed(42)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
@@ -590,7 +589,7 @@ class BoxLoss(torch.nn.Module):
 
 
 class ComputeLoss:
-    def __init__(self, model, params):
+    def __init__(self, model, params=None):
         if hasattr(model, 'module'):
             model = model.module
 
@@ -684,8 +683,8 @@ class ComputeLoss:
                                                target_scores,
                                                target_scores_sum, fg_mask)
 
-        loss_box *= self.params['box']  # box gain
-        loss_cls *= self.params['cls']  # cls gain
-        loss_dfl *= self.params['dfl']  # dfl gain
+        loss_box *= 7.5 #self.params['box']  # box gain
+        loss_cls *= 0.5 #self.params['cls']  # cls gain
+        loss_dfl *= 1.5 #self.params['dfl']  # dfl gain
 
         return loss_box, loss_cls, loss_dfl

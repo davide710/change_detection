@@ -79,7 +79,7 @@ class SPPF(nn.Module):
         return x
     
 class Backbone(nn.Module):
-    def __init__(self, version, in_channels=3, shortcut=True):
+    def __init__(self, version, in_channels=1, shortcut=True):
         super().__init__()
         d, w, r = yolo_params(version)
         self.conv_0 = Conv(in_channels, int(64 * w), kernel_size=3, stride=2, padding=1)
@@ -96,16 +96,27 @@ class Backbone(nn.Module):
         self.sppf = SPPF(int(512 * w * r), int(512 * w * r))
 
     def forward(self, x):
+        print(f"Input shape: {x.shape}")
         x = self.conv_0(x)
+        print(f"After conv_0: {x.shape}")
         x = self.conv_1(x)
+        print(f"After conv_1: {x.shape}")
         x = self.c2f_2(x)
+        print(f"After c2f_2: {x.shape}")
         x = self.conv_3(x)
+        print(f"After conv_3: {x.shape}")
         out1 = self.c2f_4(x)
+        print(f"After c2f_4: {out1.shape} <----- out1 shape")
         x = self.conv_5(out1)
+        print(f"After conv_5: {x.shape}")
         out2 = self.c2f_6(x)
+        print(f"After c2f_6: {out2.shape} <----- out2 shape")
         x = self.conv_7(out2)
+        print(f"After conv_7: {x.shape}")
         x = self.c2f_8(x)
+        print(f"After c2f_8: {x.shape}")
         x = self.sppf(x)
+        print(f"After sppf: {x.shape}")
         return out1, out2, x
 
 
@@ -131,19 +142,32 @@ class Neck(nn.Module):
         self.cv_2 = Conv(int(512 * w), int(512 * w), kernel_size=3, stride=2, padding=1)
     
     def forward(self, x_res_1, x_res_2, x):
+        print(f"Input shapes: x_res_1: {x_res_1.shape}, x_res_2: {x_res_2.shape}, x (res_1): {x.shape}")
         res_1 = x
         x = self.up(x)
+        print(f"After upsample: {x.shape}")
         x = torch.cat((x, x_res_2), dim=1)
+        print(f"After concatenation with x_res_2: {x.shape}")
         res_2 = self.c2f_1(x)
+        print(f"After c2f_1: {res_2.shape} <-- res_2 shape")
         x = self.up(res_2)
+        print(f"After upsample: {x.shape}")
         x = torch.cat((x, x_res_1), dim=1)
+        print(f"After concatenation with x_res_1: {x.shape}")
         out_1 = self.c2f_2(x)
+        print(f"After c2f_2: {out_1.shape} <----- out_1 shape")
         x = self.cv_1(out_1)
+        print(f"After cv_1: {x.shape}")
         x = torch.cat((x, res_2), dim=1)
+        print(f"After concatenation with res_2: {x.shape}")
         out_2 = self.c2f_3(x)
+        print(f"After c2f_3: {out_2.shape} <----- out_2 shape")
         x = self.cv_2(out_2)
+        print(f"After cv_2: {x.shape}")
         x = torch.cat((x, res_1), dim=1)
+        print(f"After concatenation with res_1: {x.shape}")
         out_3 = self.c2f_4(x)
+        print(f"After c2f_4: {out_3.shape} <----- out_3 shape")
         return out_1, out_2, out_3
 
 
@@ -205,6 +229,7 @@ class Head(nn.Module):
         self.dfl = DFL()
 
     def forward(self, x):
+        print(f"Head input shapes: {[i.shape for i in x]}")
         for i in range(len(self.box)):
             box = self.box[i](x[i])
             clas = self.cls[i](x[i])
