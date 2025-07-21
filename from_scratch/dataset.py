@@ -37,7 +37,7 @@ class Dataset(data.Dataset):
             target_cls = torch.from_numpy(clas)
             target_box = torch.from_numpy(box)
 
-        sample = image.reshape((1, h, w))
+        sample = image.reshape((1, h, w)) / 255.0
         sample = np.ascontiguousarray(sample)
 
         return torch.from_numpy(sample), target_cls, target_box, torch.zeros(nl)
