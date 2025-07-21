@@ -37,7 +37,7 @@ class Dataset(data.Dataset):
             target_cls = torch.from_numpy(clas)
             target_box = torch.from_numpy(box)
 
-        sample = image.reshape((1, h, w)) / 255.0
+        sample = image.reshape((1, h, w))
         sample = np.ascontiguousarray(sample)
 
         return torch.from_numpy(sample), target_cls, target_box, torch.zeros(nl)
@@ -52,7 +52,7 @@ class Dataset(data.Dataset):
         r = self.input_size / max(h, w)
         if r != 1:
             image = cv2.resize(image, dsize=(int(w * r), int(h * r)), interpolation=cv2.INTER_LINEAR)
-        return image
+        return 1 - image / 255.0
 
     @staticmethod
     def collate_fn(batch):
