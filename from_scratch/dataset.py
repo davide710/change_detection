@@ -40,7 +40,9 @@ class Dataset(data.Dataset):
         sample = image.reshape((1, h, w))
         sample = np.ascontiguousarray(sample)
 
-        return torch.from_numpy(sample), target_cls, target_box, torch.zeros(nl)
+        target = self.get_target(target_cls, target_box)
+
+        return torch.from_numpy(sample), target
 
     def __len__(self):
         return len(self.filenames)
@@ -52,24 +54,50 @@ class Dataset(data.Dataset):
         r = self.input_size / max(h, w)
         if r != 1:
             image = cv2.resize(image, dsize=(int(w * r), int(h * r)), interpolation=cv2.INTER_LINEAR)
-        return 1 - image / 255.0
+        image = 1 - image / 255.0
+        image[image > 0] = 1
+        return image
+    
+    def get_target(self, target_cls, target_box):
+        zeros = np.zeros((2, 640, 640))
+        for b, l in zip(target_box, target_cls):
+            x, y, w, h = np.array(b*640, dtype=np.int32)
+            if l == 0:
+                zeros[0, y - h // 2:y + h // 2, x - w // 2:x + w // 2] = 1
+            if l == 1:
+                zeros[1, y - h // 2:y + h // 2, x - w // 2:x + w // 2] = 1
 
-    @staticmethod
-    def collate_fn(batch):
-        samples, clas, box, indices = zip(*batch)
+        target = []
 
-        clas = torch.cat(clas, dim=0)
-        box = torch.cat(box, dim=0)
+        for out_size in [20, 40, 80]:
+            step = 640 // out_size
+            t = np.zeros((2, out_size, out_size))
+            for i in range(0, 640, step):
+                for j in range(0, 640, step):
+                    for k in range(2):
+                        if np.sum(zeros[k, i:i+step, j:j+step]) > 0:
+                            t[k, i // step, j // step] = 1
+            target.append(torch.from_numpy(t))
+        
+        return target
+    
 
-        new_indices = list(indices)
-        for i in range(len(indices)):
-            new_indices[i] += i
-        indices = torch.cat(new_indices, dim=0)
-
-        targets = {'cls': clas,
-                   'box': box,
-                   'idx': indices}
-        return torch.stack(samples, dim=0), targets
+#    @staticmethod
+#    def collate_fn(batch):
+#        samples, clas, box, indices = zip(*batch)
+#
+#        clas = torch.cat(clas, dim=0)
+#        box = torch.cat(box, dim=0)
+#
+#        new_indices = list(indices)
+#        for i in range(len(indices)):
+#            new_indices[i] += i
+#        indices = torch.cat(new_indices, dim=0)
+#
+#        targets = {'cls': clas,
+#                   'box': box,
+#                   'idx': indices}
+#        return torch.stack(samples, dim=0), targets
 
     @staticmethod
     def load_labels(path):

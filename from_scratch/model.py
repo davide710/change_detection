@@ -200,15 +200,15 @@ class Head(nn.Module):
             nn.Sequential(
                 Conv(int(256 * w), self.coordinates, kernel_size=3, stride=1, padding=1),
                 Conv(self.coordinates, self.coordinates, kernel_size=3, stride=1, padding=1),
-                nn.Conv2d(self.coordinates, self.coordinates, kernel_size=1, stride=1)),
+                nn.Conv2d(self.coordinates, 2, kernel_size=1, stride=1)),
             nn.Sequential(
                 Conv(int(512 * w), self.coordinates, kernel_size=3, stride=1, padding=1),
                 Conv(self.coordinates, self.coordinates, kernel_size=3, stride=1, padding=1),
-                nn.Conv2d(self.coordinates, self.coordinates, kernel_size=1, stride=1)),
+                nn.Conv2d(self.coordinates, 2, kernel_size=1, stride=1)),
             nn.Sequential(
                 Conv(int(512 * w * r), self.coordinates, kernel_size=3, stride=1, padding=1),
                 Conv(self.coordinates, self.coordinates, kernel_size=3, stride=1, padding=1),
-                nn.Conv2d(self.coordinates, self.coordinates, kernel_size=1, stride=1))
+                nn.Conv2d(self.coordinates, 2, kernel_size=1, stride=1))
         ])
 
         self.cls = nn.ModuleList([
