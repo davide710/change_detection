@@ -231,10 +231,11 @@ class Head(nn.Module):
     def forward(self, x):
         #print(f"Head input shapes: {[i.shape for i in x]}")
         for i in range(len(self.box)):
-            box = self.box[i](x[i])
-            clas = self.cls[i](x[i])
-            x[i] = torch.cat((box, clas), dim=1)
-                
+#            box = self.box[i](x[i])
+#            clas = self.cls[i](x[i])
+#            x[i] = torch.cat((box, clas), dim=1)
+            x[i] = self.box[i](x[i])
+                            
         if self.training:
             return x
         

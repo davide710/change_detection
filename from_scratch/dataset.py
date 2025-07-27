@@ -69,7 +69,7 @@ class Dataset(data.Dataset):
 
         target = []
 
-        for out_size in [20, 40, 80]:
+        for out_size in [80, 40, 20]:
             step = 640 // out_size
             t = np.zeros((2, out_size, out_size))
             for i in range(0, 640, step):
