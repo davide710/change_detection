@@ -37,37 +37,44 @@ def load_image(image_path):
     sample = torch.from_numpy(sample)
     return sample
 
-def predict(model, im_path):
+def predict(model, im_path, scale=20, threshold=0.5):
+    scales = {
+        80: 0,
+        40: 1,
+        20: 2
+    }
     model.eval()
     sample = load_image(im_path)
     image = sample.cpu().numpy().reshape((640, 640))
     with torch.no_grad():
-        outputs = model(sample.float())[2][0]
+        outputs = model(sample.float())[scales[scale]][0]
         out0 = torch.sigmoid(outputs[0].cpu().detach()).numpy()
-        out0[out0 < 0.5] = 0
-        out0[out0 >= 0.5] = 1
-        for i in range(20):
-            for j in range(20):
+        out0[out0 < threshold] = 0
+        out0[out0 >= threshold] = 1
+        for i in range(scale):
+            for j in range(scale):
                 if out0[i][j] == 1:
-                    x1 = j * 32
-                    y1 = i * 32
-                    x2 = (j + 1) * 32
-                    y2 = (i + 1) * 32
+                    x1 = j * 640 // scale
+                    y1 = i * 640 // scale
+                    x2 = (j + 1) * 640 // scale
+                    y2 = (i + 1) * 640 // scale
+                    x1, x2, y1, y2 = min(x1, 639), min(x2, 639), min(y1, 639), min(y2, 639)
                     image[y1:y2, x1] = 1
                     image[y1:y2, x2] = 1
                     image[y1, x1:x2] = 1
                     image[y2, x1:x2] = 1
 
         out1 = torch.sigmoid(outputs[1].cpu().detach()).numpy()
-        out1[out1 < 0.5] = 0
-        out1[out1 >= 0.5] = 1
-        for i in range(20):
-            for j in range(20):
+        out1[out1 < threshold] = 0
+        out1[out1 >= threshold] = 1
+        for i in range(scale):
+            for j in range(scale):
                 if out1[i][j] == 1:
-                    x1 = j * 32
-                    y1 = i * 32
-                    x2 = (j + 1) * 32
-                    y2 = (i + 1) * 32
+                    x1 = j * 640 // scale
+                    y1 = i * 640 // scale
+                    x2 = (j + 1) * 640 // scale
+                    y2 = (i + 1) * 640 // scale
+                    x1, x2, y1, y2 = min(x1, 639), min(x2, 639), min(y1, 639), min(y2, 639)
                     image[y1:y2:3, x1] = 1
                     image[y1:y2:3, x2] = 1
                     image[y1, x1:x2:3] = 1
