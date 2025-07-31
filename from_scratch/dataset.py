@@ -20,8 +20,13 @@ class Dataset(data.Dataset):
         index = self.indices[index]
         image = self.load_image(index)
         h, w = image.shape
-        image, ratio, pad = resize(image, self.input_size)
         label = self.labels[index].copy()
+        if label.size:
+            image, label[:, 1:] = translate(image, label[:, 1:], max_shift=0.1)
+        else:
+            image, _ = translate(image, None)
+
+        image, ratio, pad = resize(image, self.input_size)
         if label.size:
             label[:, 1:] = wh2xy(label[:, 1:], ratio * w, ratio * h, pad[0], pad[1])
 
@@ -81,24 +86,6 @@ class Dataset(data.Dataset):
         
         return target
     
-
-#    @staticmethod
-#    def collate_fn(batch):
-#        samples, clas, box, indices = zip(*batch)
-#
-#        clas = torch.cat(clas, dim=0)
-#        box = torch.cat(box, dim=0)
-#
-#        new_indices = list(indices)
-#        for i in range(len(indices)):
-#            new_indices[i] += i
-#        indices = torch.cat(new_indices, dim=0)
-#
-#        targets = {'cls': clas,
-#                   'box': box,
-#                   'idx': indices}
-#        return torch.stack(samples, dim=0), targets
-
     @staticmethod
     def load_labels(path):
         saved = os.path.join(path, 'x.cache')
@@ -160,3 +147,25 @@ def resize(image, input_size):
     left, right = int(round(w - 0.1)), int(round(w + 0.1))
     image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT)
     return image, r, (w, h)
+
+def translate(image, boxes, max_shift=0.1):
+    h, w = image.shape
+    max_dx = int(max_shift * w)
+    max_dy = int(max_shift * h)
+    dx = np.random.randint(-max_dx, max_dx + 1)
+    dy = np.random.randint(-max_dy, max_dy + 1)
+    
+    matrix = np.float32([[1, 0, dx], [0, 1, dy]])
+    image = cv2.warpAffine(image, matrix, (w, h), borderValue=0)
+
+    if boxes is not None:
+        boxes = boxes.copy()
+        boxes[:, 0] = boxes[:, 0] + dx / w
+        boxes[:, 1] = boxes[:, 1] + dy / h
+
+        boxes = boxes[
+            (boxes[:, 0] > 0) & (boxes[:, 0] < 1) &
+            (boxes[:, 1] > 0) & (boxes[:, 1] < 1)
+            ]
+        
+    return image, boxes
