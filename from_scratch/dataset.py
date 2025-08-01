@@ -22,7 +22,7 @@ class Dataset(data.Dataset):
         h, w = image.shape
         label = self.labels[index].copy()
         if label.size:
-            image, label[:, 1:] = translate(image, label[:, 1:], max_shift=0.1)
+            image, label = translate(image, label, max_shift=0.1)
         else:
             image, _ = translate(image, None)
 
@@ -68,9 +68,9 @@ class Dataset(data.Dataset):
         for b, l in zip(target_box, target_cls):
             x, y, w, h = np.array(b*640, dtype=np.int32)
             if l == 0:
-                zeros[0, y - h // 2:y + h // 2, x - w // 2:x + w // 2] = 1
+                zeros[0, max(y - h // 2, 0):min(y + h // 2, 639), max(x - w // 2, 0):min(x + w // 2, 639)] = 1
             if l == 1:
-                zeros[1, y - h // 2:y + h // 2, x - w // 2:x + w // 2] = 1
+                zeros[1, max(y - h // 2, 0):min(y + h // 2, 639), max(x - w // 2, 0):min(x + w // 2, 639)] = 1
 
         target = []
 
@@ -160,12 +160,12 @@ def translate(image, boxes, max_shift=0.1):
 
     if boxes is not None:
         boxes = boxes.copy()
-        boxes[:, 0] = boxes[:, 0] + dx / w
-        boxes[:, 1] = boxes[:, 1] + dy / h
+        boxes[:, 1] = boxes[:, 1] + dx / w
+        boxes[:, 2] = boxes[:, 2] + dy / h
 
         boxes = boxes[
-            (boxes[:, 0] > 0) & (boxes[:, 0] < 1) &
-            (boxes[:, 1] > 0) & (boxes[:, 1] < 1)
+            (boxes[:, 1] > 0) & (boxes[:, 1] < 1) &
+            (boxes[:, 2] > 0) & (boxes[:, 2] < 1)
             ]
         
     return image, boxes
